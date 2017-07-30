@@ -23,7 +23,8 @@ namespace UnityTcpServer {
 			server.Start();
 
 			// Start listening loop.
-			while(true) {
+			bool exit = false;
+			while(!exit) {
 				Console.WriteLine("Waiting for a connection.");
 
 				// Accept a client connection.
