@@ -9,6 +9,12 @@ public class TcpSocketManager : MonoBehaviour {
 	// Connection flag.
 	public bool Connected {
 		get;
+		private set;
+	}
+
+	// Sample frequency.
+	public float SampleFrequency {
+		get;
 		set;
 	}
 
@@ -24,9 +30,13 @@ public class TcpSocketManager : MonoBehaviour {
 	// Network stream reader.
 	private StreamReader streamReader;
 
+	// Timer for sample frequency.
+	private float sampleTimer;
+
 	// Self-initialize this component.
 	void Awake() {
 		Connected = false;
+		SampleFrequency = 1;
 	}
 
 	// Startup this component.
@@ -37,6 +47,16 @@ public class TcpSocketManager : MonoBehaviour {
 	// Destroy this component.
 	void OnDestroy() {
 		Disconnect();
+	}
+
+	// Update this component between frames.
+	void Update() {
+		sampleTimer += Time.unscaledDeltaTime;
+		if(sampleTimer >= SampleFrequency) {
+			Write("ping");
+			Read();
+			sampleTimer -= SampleFrequency;
+		}
 	}
 
 	// Connect to the specified address and port.
@@ -53,6 +73,7 @@ public class TcpSocketManager : MonoBehaviour {
 			networkStream = socket.GetStream();
 			streamWriter = new StreamWriter(networkStream);
 			streamReader = new StreamReader(networkStream);
+			Connected = true;
 		}
 		catch(Exception e) {
 			Debug.LogErrorFormat("Error connecting to {0}:{1} : {2}", address, port, e.Message);
@@ -63,7 +84,7 @@ public class TcpSocketManager : MonoBehaviour {
 	public void Disconnect() {
 
 		// Check if we're already disconnected.
-		if(!AssertConnected(true, "Socket is already disconnected.")) {
+		if(!AssertConnected(true)) {
 			return;
 		}
 
@@ -91,7 +112,7 @@ public class TcpSocketManager : MonoBehaviour {
 	public void Read() {
 
 		// Cannot read without an active connection.
-		if(!AssertConnected(true, "Cannot read from disconnected socket.")) {
+		if(!AssertConnected(true)) {
 			return;
 		}
 
@@ -103,13 +124,15 @@ public class TcpSocketManager : MonoBehaviour {
 	}
 
 	// Assert that the connection flag must be in the specified state, or print an error.
-	private bool AssertConnected(bool connected, string error) {
+	private bool AssertConnected(bool connected, string error = null) {
 
 		// Enforce connected state.
 		if(connected != Connected) {
 
 			// Print error.
-			Debug.LogError(error);
+			if(!string.IsNullOrEmpty(error)) {
+				Debug.LogError(error);
+			}
 
 			// Return failure.
 			return false;
