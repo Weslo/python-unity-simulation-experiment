@@ -104,7 +104,7 @@ public class TcpSocketManager : MonoBehaviour {
 		}
 
 		// Write data to network stream.
-		streamWriter.Write(data);
+		streamWriter.WriteLine(data);
 		streamWriter.Flush();
 	}
 

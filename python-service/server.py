@@ -16,6 +16,7 @@ while 1:
     while 1:
         data = client.recv(size)
         if data:
+            data = data.rstrip()
             print "Data from client: {0}".format(data)
             if data == "ping":
                 client.send("pong\n")
